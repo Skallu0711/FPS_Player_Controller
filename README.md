@@ -1,2 +1,2 @@
-# FPS_Player_Controller
+# FPS Player Controller
 First Person Shooter player controller

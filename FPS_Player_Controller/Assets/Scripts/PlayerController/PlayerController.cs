@@ -1,5 +1,6 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System;
+using JetBrains.Annotations;
+using SkalluUtils.PropertyAttributes;
 using UnityEngine;
 
 public class PlayerController : MonoBehaviour
@@ -8,6 +9,9 @@ public class PlayerController : MonoBehaviour
     public static PlayerController self => _self;
     
     [HideInInspector] public PlayerMovement playerMovement;
+    [HideInInspector] public PlayerCombat playerCombat;
+    private InputManager inputManager;
+    private Camera mainCamera;
 
     #region MOVEMENT PARAMETERS
     [Header("Movement parameters")]
@@ -21,6 +25,16 @@ public class PlayerController : MonoBehaviour
     public float airDrag = 2;
     #endregion
 
+    [Space]
+    [SerializeField] private float pickUpRange = 1;
+    [SerializeField] private LayerMask itemsLayer;
+    [SerializeField] [ReadOnlyInspector] [CanBeNull] private WeaponController triggeredWeapon;
+    [HideInInspector] public Transform weaponHolder;
+
+    public class OnItemPickedUpEventArgs: EventArgs { public WeaponController pickedUpWeapon; }
+    public event EventHandler<OnItemPickedUpEventArgs> OnItemPickedUp;
+    public event EventHandler OnItemDropped;
+
     private void Awake()
     {
         if (_self != null && _self != this)
@@ -32,6 +46,11 @@ public class PlayerController : MonoBehaviour
             _self = this;
 
             playerMovement = GetComponent<PlayerMovement>();
+            playerCombat = GetComponent<PlayerCombat>();
+            inputManager = InputManager.self;
+            mainCamera = Camera.main;
+            
+            weaponHolder = GameObject.FindGameObjectWithTag("WeaponHolder").transform;
         }
     }
 
@@ -42,8 +61,58 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
+        SearchForItems();
+        
+        //
+        if (inputManager.KeyPressed(inputManager.actionButton) && triggeredWeapon != null)
+        {
+            if (playerCombat.hasWeapon)
+                Drop(playerCombat.equippedWeapon);
 
+            PickUp(triggeredWeapon);
+        }
+        
+        //
+        if (inputManager.KeyPressed(inputManager.dropWeaponButton) && playerCombat.hasWeapon)
+            Drop(playerCombat.equippedWeapon);
+    }
+    
+    private void SearchForItems()
+    {
+        if (Physics.Raycast(mainCamera.transform.position, mainCamera.transform.forward, out RaycastHit hit, pickUpRange, itemsLayer))
+        {
+            if (hit.collider != null)
+            {
+                var collidedObject = hit.collider.gameObject;
+                
+                if (collidedObject.CompareTag("Weapon") && collidedObject.TryGetComponent(out WeaponController weaponController))
+                {
+                    triggeredWeapon = weaponController;
+                }
+            }
+        }
+        else
+        {
+            triggeredWeapon = null;
+        }
+        
     }
 
-    
+    private void PickUp(WeaponController itemToPickUp)
+    {
+        if (!playerCombat.hasWeapon)
+            OnItemPickedUp?.Invoke(this, new OnItemPickedUpEventArgs{pickedUpWeapon = triggeredWeapon});
+    }
+
+    private void Drop(WeaponController itemToDrop)
+    {
+        if (playerCombat.hasWeapon)
+        {
+            OnItemDropped?.Invoke(this, EventArgs.Empty);
+            
+            itemToDrop.rb.AddForce(mainCamera.transform.forward * 5f, ForceMode.Impulse);
+        }
+    }
+
+
 } 

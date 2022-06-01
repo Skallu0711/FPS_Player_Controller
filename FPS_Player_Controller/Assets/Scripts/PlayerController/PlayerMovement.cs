@@ -13,9 +13,6 @@ public class PlayerMovement : MonoBehaviour
     private float horizontalMovementInput;
     private float verticalMovementInput;
     private float groundDrag;
-    
-    // ground check
-    [SerializeField] private LayerMask groundLayer;
     [SerializeField] [ReadOnlyInspector] private bool onGround;
 
     // sprinting

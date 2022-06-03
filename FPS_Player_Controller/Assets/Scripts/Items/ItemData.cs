@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using SkalluUtils.Utils.Sound;
+using UnityEngine;
 
 [CreateAssetMenu(fileName = "New Item", menuName = "Item")]
 public class ItemData : ScriptableObject
@@ -10,5 +11,7 @@ public class ItemData : ScriptableObject
     
     [SerializeField] private string itemName;
     public string ItemName => itemName;
-    
+
+    [SerializeField] private Sound[] sounds;
+    public Sound[] Sounds => sounds;
 }

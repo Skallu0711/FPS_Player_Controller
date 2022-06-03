@@ -10,7 +10,7 @@ public class PlayerController : MonoBehaviour
     
     [HideInInspector] public PlayerMovement playerMovement;
     [HideInInspector] public PlayerCombat playerCombat;
-    private InputManager inputManager;
+    [HideInInspector] public InputManager inputManager;
     private Camera mainCamera;
 
     #region MOVEMENT PARAMETERS
@@ -29,6 +29,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float pickUpRange = 1;
     [SerializeField] private LayerMask itemsLayer;
     [SerializeField] [ReadOnlyInspector] [CanBeNull] private WeaponController triggeredWeapon;
+    [HideInInspector] public Vector3 lookPosition;
     [HideInInspector] public Transform weaponHolder;
 
     public class OnItemPickedUpEventArgs: EventArgs { public WeaponController pickedUpWeapon; }
@@ -64,7 +65,7 @@ public class PlayerController : MonoBehaviour
         SearchForItems();
         
         //
-        if (inputManager.KeyPressed(inputManager.actionButton) && triggeredWeapon != null)
+        if (InputManager.KeyPressed(inputManager.actionButton) && triggeredWeapon != null)
         {
             if (playerCombat.hasWeapon)
                 Drop(playerCombat.equippedWeapon);
@@ -73,7 +74,7 @@ public class PlayerController : MonoBehaviour
         }
         
         //
-        if (inputManager.KeyPressed(inputManager.dropWeaponButton) && playerCombat.hasWeapon)
+        if (InputManager.KeyPressed(inputManager.dropWeaponButton) && playerCombat.hasWeapon)
             Drop(playerCombat.equippedWeapon);
     }
     
@@ -89,6 +90,8 @@ public class PlayerController : MonoBehaviour
                 {
                     triggeredWeapon = weaponController;
                 }
+
+                lookPosition = hit.point;
             }
         }
         else

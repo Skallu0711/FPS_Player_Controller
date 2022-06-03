@@ -4,14 +4,16 @@ using UnityEngine;
 [RequireComponent(typeof(PlayerController), typeof(Rigidbody))]
 public class PlayerMovement : MonoBehaviour
 {
-    private Rigidbody rb;
     private PlayerController playerController;
     private InputManager inputManager;
+    private Rigidbody rb;
+
+    [SerializeField] private Transform orientation;
+    [Space]
 
     // ground movement
     private float movementSpeed;
-    private float horizontalMovementInput;
-    private float verticalMovementInput;
+    private float horizontalMovementInput, verticalMovementInput;
     private float groundDrag;
     [SerializeField] [ReadOnlyInspector] private bool onGround;
 
@@ -26,10 +28,10 @@ public class PlayerMovement : MonoBehaviour
 
     private void Awake()
     {
-        rb = GetComponent<Rigidbody>();
-        
         playerController = PlayerController.self;
-        inputManager = InputManager.self;
+        inputManager = playerController.inputManager;
+        
+        rb = GetComponent<Rigidbody>();
     }
 
     private void Start()
@@ -58,27 +60,23 @@ public class PlayerMovement : MonoBehaviour
         HandleDrag();
         LimitVelocity();
     }
-
-    /// <summary>
-    /// Gets input from input manager
-    /// </summary>
+    
+    // Gets input from input manager
     private void GetInput()
     {
         horizontalMovementInput = inputManager.horizontalMovementInput;
         verticalMovementInput = inputManager.verticalMovementInput;
 
-        isSprinting = inputManager.KeyHold(inputManager.sprintButton) && onGround;
+        isSprinting = InputManager.KeyHold(inputManager.sprintButton) && onGround;
         
-        if (inputManager.KeyPressed(inputManager.jumpButton) && onGround) 
+        if (InputManager.KeyPressed(inputManager.jumpButton) && onGround) 
             Jump();
     }
-
-    /// <summary>
-    /// Moves player character
-    /// </summary>
+    
+    // Moves player character
     private void Move()
     {
-        var movementDirection = (transform.forward * verticalMovementInput + transform.right * horizontalMovementInput).normalized;
+        var movementDirection = (orientation.forward * verticalMovementInput + orientation.right * horizontalMovementInput).normalized;
         
         var multiplier = onGround
             ? isSprinting
@@ -87,10 +85,8 @@ public class PlayerMovement : MonoBehaviour
 
         rb.AddForce(movementDirection * (movementSpeed * 10 * multiplier), ForceMode.Acceleration);
     }
-
-    /// <summary>
-    /// Performs single jump
-    /// </summary>
+    
+    // Performs single jump
     private void Jump()
     {
         var currentVelocity = rb.velocity;
@@ -98,15 +94,11 @@ public class PlayerMovement : MonoBehaviour
         rb.velocity = new Vector3(currentVelocity.x, 0f, currentVelocity.z);
         rb.AddForce(transform.up * jumpForce, ForceMode.Impulse);
     }
-
-    /// <summary>
-    /// Determines drag based on whether player is on the ground or in the air
-    /// </summary>
+    
+    // Determines drag based on whether player is on the ground or in the air
     private void HandleDrag() => rb.drag = onGround ? groundDrag : airDrag;
-
-    /// <summary>
-    /// Limits velocity taking into account the current movement multiplier
-    /// </summary>
+    
+    // Limits velocity taking into account the current movement multiplier
     private void LimitVelocity()
     {
         var currentVelocity = rb.velocity;

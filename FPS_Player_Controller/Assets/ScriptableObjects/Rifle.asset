@@ -14,7 +14,23 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: 1
   itemName: Rifle
+  sounds:
+  - audioClip: {fileID: 8300000, guid: 76f3360dc4855a2438de90f6a097b050, type: 3}
+    volume: 0.5
+    pitch: 1
+  - audioClip: {fileID: 8300000, guid: daf9655a2e1d80e4782c886bdbeef10b, type: 3}
+    volume: 0.5
+    pitch: 1
+  - audioClip: {fileID: 8300000, guid: b9fbecf25f18e4044b4ea3d903bf343c, type: 3}
+    volume: 0.3
+    pitch: 1
   canFullAuto: 1
   shootRate: 0.1
   magSize: 30
   muzzleEndPosition: {x: 0, y: 0, z: -0.9}
+  recoilParameters:
+    recoilX: -2
+    recoilY: 2
+    recoilZ: 0.35
+    snappiness: 6
+    returnSpeed: 2

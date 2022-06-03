@@ -1,4 +1,5 @@
-﻿using SkalluUtils.PropertyAttributes;
+﻿using System;
+using SkalluUtils.PropertyAttributes;
 using UnityEngine;
 
 public class InputManager : MonoBehaviour
@@ -24,6 +25,8 @@ public class InputManager : MonoBehaviour
     [ReadOnlyInspector] public float mouseXInput;
     [ReadOnlyInspector] public float mouseYInput;
     #endregion
+
+    [HideInInspector] public bool isMoving;
 
     private void Awake()
     {
@@ -54,6 +57,8 @@ public class InputManager : MonoBehaviour
         horizontalMovementInput = Input.GetAxisRaw("Horizontal");
         verticalMovementInput = Input.GetAxisRaw("Vertical");
 
+        isMoving = Math.Abs(horizontalMovementInput) > 0 || Math.Abs(verticalMovementInput) > 0;
+
         // track horizontal and vertical mouse input
         mouseXInput = Input.GetAxisRaw("Mouse X");
         mouseYInput = Input.GetAxisRaw("Mouse Y");
@@ -64,20 +69,20 @@ public class InputManager : MonoBehaviour
     /// </summary>
     /// <param name="keyCode"> keycode to check if it is pressed </param>
     /// <returns> bool value that specifies whether key is pressed </returns>
-    public bool KeyPressed(KeyCode keyCode) => Input.GetKeyDown(keyCode);
+    public static bool KeyPressed(KeyCode keyCode) => Input.GetKeyDown(keyCode);
 
     /// <summary>
     /// Checks if provided key is hold
     /// </summary>
     /// <param name="keyCode"> keycode to check if it is hold </param>
     /// <returns> bool value that specifies whether key is hold </returns>
-    public bool KeyHold(KeyCode keyCode) => Input.GetKey(keyCode);
+    public static bool KeyHold(KeyCode keyCode) => Input.GetKey(keyCode);
 
     /// <summary>
     /// Checks if provided key is released
     /// </summary>
     /// <param name="keyCode"> keycode to check if it is released </param>
     /// <returns> bool value that specifies whether key is released </returns>
-    public bool KeyReleased(KeyCode keyCode) => Input.GetKeyUp(keyCode);
+    public static bool KeyReleased(KeyCode keyCode) => Input.GetKeyUp(keyCode);
     
 } 

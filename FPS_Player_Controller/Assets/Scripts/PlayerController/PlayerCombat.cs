@@ -8,8 +8,10 @@ public class PlayerCombat : MonoBehaviour
 {
     private PlayerController playerController;
     private InputManager inputManager;
-    [HideInInspector] public MuzzleFlash muzzleFlash;
     
+    public CameraRecoil cameraRecoil;
+    
+    [Space]
     [ReadOnlyInspector] public bool hasWeapon;
     [ReadOnlyInspector] [CanBeNull] public WeaponController equippedWeapon;
     
@@ -21,9 +23,7 @@ public class PlayerCombat : MonoBehaviour
     private void Awake()
     {
         playerController = PlayerController.self;
-        inputManager = InputManager.self;
-        
-        muzzleFlash = MuzzleFlash.self;
+        inputManager = playerController.inputManager;
     }
 
     private void OnEnable()
@@ -37,19 +37,19 @@ public class PlayerCombat : MonoBehaviour
         // shooting
         if (equippedWeapon != null)
         {
-            if (Time.time >= nextShootTime && inputManager.KeyPressed(inputManager.shootButton))
+            if (Time.time >= nextShootTime && InputManager.KeyPressed(inputManager.shootButton))
             {
                 ShootOnce();
                 nextShootTime = Time.time + 1f * equippedWeapon.weaponData.ShootRate;
             }
 
-            if (inputManager.KeyHold(inputManager.shootButton) && equippedWeapon.weaponData.CanFullAuto)
+            if (InputManager.KeyHold(inputManager.shootButton) && equippedWeapon.weaponData.CanFullAuto)
                 ShootFullAuto();
 
-            if (inputManager.KeyReleased(inputManager.shootButton))
+            if (InputManager.KeyReleased(inputManager.shootButton))
             {
                 fullAutoShootTimer = equippedWeapon.weaponData.ShootRate;
-                equippedWeapon.HideMuzzleFlash();
+                cameraRecoil.StopRecoil();
             }
         }
     }
@@ -63,8 +63,17 @@ public class PlayerCombat : MonoBehaviour
     // Performs single shot
     private void ShootOnce()
     {
-        equippedWeapon.Shoot();
-        OnShoot?.Invoke(this, EventArgs.Empty);
+        if (equippedWeapon.currentAmmo > 0)
+        {
+            equippedWeapon.Shoot();
+            
+            cameraRecoil.StartRecoil();
+            OnShoot?.Invoke(this, EventArgs.Empty);
+        }
+        else
+        {
+            cameraRecoil.StopRecoil();
+        }
     }
 
     // Full autoing
@@ -79,12 +88,10 @@ public class PlayerCombat : MonoBehaviour
         }
     }
 
-    // Equips triggered weapon
+    // Equips weapon provided as parameter
     private void Equip(WeaponController weaponToEquip)
     {
         equippedWeapon = weaponToEquip;
-        muzzleFlash.transform.localPosition = equippedWeapon.weaponData.MuzzleEndPosition; // set muzzle flash position to equipped gun's muzzle end
-        
         hasWeapon = true;
     }
 
@@ -100,12 +107,16 @@ public class PlayerCombat : MonoBehaviour
     {
         Equip(e.pickedUpWeapon);
         fullAutoShootTimer = equippedWeapon.weaponData.ShootRate;
+
+        var recoilParameters = equippedWeapon.weaponData.RecoilParameters;
+        cameraRecoil.SetRecoil(recoilParameters.RecoilX, recoilParameters.RecoilY, recoilParameters.RecoilZ, recoilParameters.Snappiness, recoilParameters.ReturnSpeed);
     }
 
     // Called everytime player drops equipped weapon
     private void PlayerControllerOnOnItemDropped(object sender, EventArgs e)
     {
-        muzzleFlash.Hide();
+        cameraRecoil.StopRecoil();
         UnEquip();   
     }
-} 
+    
+}
